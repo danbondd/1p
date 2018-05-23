@@ -5,6 +5,7 @@
 ## Installation
 
 - Copy the script to your `$PATH`: `cp ./1p /usr/local/bin`
+- Create an alias: `alias op=1p`
 
 ## Usage
 
