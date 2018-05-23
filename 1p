@@ -7,23 +7,27 @@ function error {
 
 function signin {
 	# Get current account from op config
-	ACCOUNT=$(jq '.accounts | .[] | .shorthand' "$HOME"/.op/config) || error "error getting op config"
+	if [ -f "$HOME/.op/config" ]; then
+		ACCOUNT=$(jq '.accounts | .[] | .shorthand' "$HOME/.op/config" --raw-output) || error "error getting op config"
+	fi
 	# Sign in to account
-	eval $(op signin "${ACCOUNT:1:-1}")
+	echo $(op signin "${ACCOUNT}")
 }
 
 function getUsage {
 	echo "
 1p Subcommands:
 
-    password    Get password for given account"
+    password    Get password for given account
+"
 }
 
 function createUsage {
 	echo "
 1p Subcommands:
 
-    password    Create a random 32 bit password"
+    password    Create a random 32 bit password
+"
 }
 
 
@@ -38,19 +42,23 @@ if [ "$#" -eq 0 ]; then
 	exit 0
 fi
 
-# Skip sign in if arbitrary command
+if [[ $* =~ "-h" || $* =~ "--help" ]]; then
+	op "$@"
+	if [[ $* =~ "get" ]]; then
+		getUsage
+	elif [[ $* =~ "create" ]]; then
+		createUsage
+	fi
+	exit 0
+fi
+
 for arg in "$@"
 do
-    if [[ "$arg" =~ ^(-h|--help)$ ]]; then
+    if [[ "$arg" =~ ^(--version|encode|update|signout)$ ]]; then
 	    op "$@"
-		if [[ "$1" == "get" ]]; then
-			getUsage
-		elif [[ "$1" == "create" ]]; then
-			createUsage
-		fi
-	    exit 0
-    elif [[ "$arg" =~ ^(encode|update|signin|signout)$ ]]; then
-	    op "$@"
+	    exit "$?"
+	elif [[ "$arg" == "signin" ]]; then
+		signin
 	    exit "$?"
     fi
 done
@@ -60,10 +68,9 @@ if [[ "$1" == "get" && "$2" == "password" ]]; then
 	if [ -z "$3" ]; then
 		error "account name not specified, try: 1p get password <account>"
 	fi
-	signin
 	ITEM=$(op get item $3)
 	[ $? -eq 0 ] || exit $?
-	echo "$ITEM" | jq '.details.fields[] | select(.designation=="password").value' --raw-output
+	echo "${ITEM}" | jq '.details.fields[] | select(.designation=="password").value' --raw-output
 	exit 0
 elif [[ "$1" == "create" && "$2" == "password" ]]; then
 	PASSWORD=$(openssl rand -base64 32)
@@ -72,7 +79,11 @@ elif [[ "$1" == "create" && "$2" == "password" ]]; then
 	exit 0
 fi
 
+OUTPUT=$(op "$@")
+[ $? -eq 0 ] || exit $?
 
-# Run op command and pretty print json
-signin
-op "$@" | jq .
+$(echo "${OUTPUT}" | jq -e . >/dev/null 2>&1)
+[ $? -eq 0 ] || error "${OUTPUT}"
+
+echo "${OUTPUT}"
+exit 0
