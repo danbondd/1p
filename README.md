@@ -13,4 +13,5 @@
 
 ### 1p Subcommands
 
-- `1p get password [<account>]`: Print just the password for a given account in plain text.
+- `1p get password <account>`: Get password for given account in plain text.
+- `1p create password`: Create a random 32 bit password.
