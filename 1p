@@ -9,9 +9,10 @@ function signin {
 	# Get current account from op config
 	if [ -f "$HOME/.op/config" ]; then
 		ACCOUNT=$(jq '.accounts | .[] | .shorthand' "$HOME/.op/config" --raw-output) || error "error getting op config"
+		echo $(op signin "${ACCOUNT}")
+	else
+		op "$@"
 	fi
-	# Sign in to account
-	echo $(op signin "${ACCOUNT}")
 }
 
 function getUsage {
@@ -58,7 +59,7 @@ do
 	    op "$@"
 	    exit "$?"
 	elif [[ "$arg" == "signin" ]]; then
-		signin
+		signin "$@"
 	    exit "$?"
     fi
 done
