@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
+set -o errexit
+
 function error {
-	echo "$1"
+	echo "error: $1"
 	exit 1
 }
 
@@ -15,76 +17,42 @@ function signin {
 	fi
 }
 
-function getUsage {
-	echo "
-1p Subcommands:
-
-    password    Get password for given account
-"
+function get {
+	if [[ "$2" == "item" ]]; then
+		ITEM=$(op get item $3)
+		if [ $? -ne 0 ]; then
+			error "${ITEM}"
+		fi
+		echo "${ITEM}" | jq '.details.fields[] | select(.designation=="password").value' --raw-output
+	else
+		op "$@"
+	fi
 }
 
-function createUsage {
-	echo "
-1p Subcommands:
-
-    password    Create a random 32 bit password
-"
+function generate {
+	PASSWORD=$(openssl rand -base64 32)
+	if [ $? -ne 0 ]; then
+		error "${PASSWORD}"
+	fi
+	echo "${PASSWORD}"
 }
-
 
 # Check requirements
 command -v op &> /dev/null || error "required program 'op' is not installed"
 command -v jq &> /dev/null || error "required program 'jq' is not installed"
 command -v openssl &> /dev/null || error "required program 'openssl' is not installed"
 
-# Check if no args
-if [ "$#" -eq 0 ]; then
-	op -h
-	exit 0
-fi
-
-if [[ $* =~ "-h" || $* =~ "--help" ]]; then
-	op "$@"
-	if [[ $* =~ "get" ]]; then
-		getUsage
-	elif [[ $* =~ "create" ]]; then
-		createUsage
-	fi
-	exit 0
-fi
-
-for arg in "$@"
-do
-    if [[ "$arg" =~ ^(--version|encode|update|signout)$ ]]; then
-	    op "$@"
-	    exit "$?"
-	elif [[ "$arg" == "signin" ]]; then
+case "$1" in
+	signin)
 		signin "$@"
-	    exit "$?"
-    fi
-done
-
-# Check if custom 1p command
-if [[ "$1" == "get" && "$2" == "password" ]]; then
-	if [ -z "$3" ]; then
-		error "account name not specified, try: 1p get password <account>"
-	fi
-	ITEM=$(op get item $3)
-	[ $? -eq 0 ] || exit $?
-	echo "${ITEM}" | jq '.details.fields[] | select(.designation=="password").value' --raw-output
-	exit 0
-elif [[ "$1" == "create" && "$2" == "password" ]]; then
-	PASSWORD=$(openssl rand -base64 32)
-	[ $? -eq 0 ] || error "error generating password, try: 1p create password"
-	echo "${PASSWORD}"
-	exit 0
-fi
-
-OUTPUT=$(op "$@")
-[ $? -eq 0 ] || exit $?
-
-$(echo "${OUTPUT}" | jq -e . >/dev/null 2>&1)
-[ $? -eq 0 ] || error "${OUTPUT}"
-
-echo "${OUTPUT}"
-exit 0
+		;;
+	get)
+		get "$@"
+		;;
+	generate)
+		generate "$@"
+		;;
+	*)
+		op "$@"
+		;;
+esac

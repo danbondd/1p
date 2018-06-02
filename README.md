@@ -9,9 +9,8 @@
 
 ## Usage
 
-`1p` works exactly the same as the `op` command. However, by default it pretty prints the JSON output.
+`1p` works exactly the same as the `op` command. However, it simplifies a few of the commands:
 
-### 1p Subcommands
-
-- `1p get password <account>`: Get password for given account in plain text.
-- `1p create password`: Create a random 32 bit password.
+- `op get item <account>`: Get password for given account in plain text.
+- `op generate`: Create a random 32 bit password.
+- `op signin`: Sign in to current saved profile in `$HOME/.op/config`.
