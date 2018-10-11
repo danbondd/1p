@@ -18,7 +18,7 @@ function signin {
 }
 
 function get {
-	if [[ "$2" == "item" ]]; then
+	if [[ "$2" == "password" ]]; then
 		ITEM=$(op get item $3)
 		if [ $? -ne 0 ]; then
 			error "${ITEM}"
@@ -37,6 +37,35 @@ function generate {
 	echo "${PASSWORD}"
 }
 
+function export_logins {
+	if [ -z "$1" ]; then
+		FILE="$(date "+%Y%m%d-%H%M%S")-1password.json"
+	else
+		if [ -f "$1" ]; then
+			error "file already exists '$1'"
+		else
+			FILE=$1
+		fi
+	fi
+
+	echo -ne "Exporting logins (this may take a while)... "
+	ITEMS=$(op list items)
+	if [ $? -ne 0 ]; then
+		error "${ITEMS}"
+	fi
+	UUIDS=($(echo "${ITEMS}" | jq '.[] | .uuid' --raw-output))
+	ITEMS=()
+
+	for UUID in ${UUIDS[@]}; do
+		LOGIN=$(op get item "${UUID}")
+		if [ $? -eq 0 ]; then
+			ITEMS+=(${LOGIN})
+		fi
+	done
+	echo ${ITEMS[@]} | jq -sc . > "${FILE}"
+	echo -ne "ok\r\n"	
+}
+
 # Check requirements
 command -v op &> /dev/null || error "required program 'op' is not installed"
 command -v jq &> /dev/null || error "required program 'jq' is not installed"
@@ -51,6 +80,9 @@ case "$1" in
 		;;
 	generate)
 		generate "$@"
+		;;
+	export)
+		export_logins $2
 		;;
 	*)
 		op "$@"
