@@ -48,7 +48,6 @@ function export_logins {
 		fi
 	fi
 
-	echo -ne "Exporting logins (this may take a while)... "
 	ITEMS=$(op list items)
 	if [ $? -ne 0 ]; then
 		error "${ITEMS}"
@@ -56,6 +55,7 @@ function export_logins {
 	UUIDS=($(echo "${ITEMS}" | jq '.[] | .uuid' --raw-output))
 	ITEMS=()
 
+	echo -ne "Exporting logins (this may take a while)... "
 	for UUID in ${UUIDS[@]}; do
 		LOGIN=$(op get item "${UUID}")
 		if [ $? -eq 0 ]; then
