@@ -2,8 +2,12 @@
 
 set -o errexit
 
+# Check requirements
+command -v op &> /dev/null || error "required program 'op' is not installed"
+command -v jq &> /dev/null || error "required program 'jq' is not installed"
+
 function error {
-	echo "error: $1"
+	echo "ERROR: $1"
 	exit 1
 }
 
@@ -69,10 +73,6 @@ function export_logins {
 	echo ${ITEMS[@]} | jq -sc . > "${FILE}"
 	echo -ne "ok\r\n"	
 }
-
-# Check requirements
-command -v op &> /dev/null || error "required program 'op' is not installed"
-command -v jq &> /dev/null || error "required program 'jq' is not installed"
 
 case "$1" in
 	signin)
