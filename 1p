@@ -30,7 +30,11 @@ function get {
 }
 
 function generate {
-	PASSWORD=$(openssl rand -base64 32)
+	LENGTH=32
+	if ! [ -z "$1" ]; then
+		LENGTH=$1
+	fi
+	PASSWORD=$(cat /dev/urandom | tr -dc 'A-Za-z0-9!@#$%^&*()-_=+[]{};:,.<>/?' | head -c $LENGTH)
 	if [ $? -ne 0 ]; then
 		error "${PASSWORD}"
 	fi
@@ -69,7 +73,6 @@ function export_logins {
 # Check requirements
 command -v op &> /dev/null || error "required program 'op' is not installed"
 command -v jq &> /dev/null || error "required program 'jq' is not installed"
-command -v openssl &> /dev/null || error "required program 'openssl' is not installed"
 
 case "$1" in
 	signin)
@@ -79,7 +82,7 @@ case "$1" in
 		get "$@"
 		;;
 	generate)
-		generate "$@"
+		generate $2
 		;;
 	export)
 		export_logins $2

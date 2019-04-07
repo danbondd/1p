@@ -13,5 +13,5 @@
 
 - `op export`: Export all logins and save to a file.
 - `op get password <account>`: Get password for given account in plain text.
-- `op generate`: Create a random 32 byte password.
+- `op generate <length>`: Create a random password [default=32 bytes].
 - `op signin`: Sign in to current saved profile in `$HOME/.op/config`.
