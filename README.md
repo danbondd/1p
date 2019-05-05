@@ -4,14 +4,14 @@
 
 ## Installation
 
-- Copy/link the script to your `$PATH`: `ln -sfv /path/to/1p /usr/local/bin/1p`
-- Create an alias: `alias op=1p`
+- Copy or link the script to your `$PATH`: `ln -sfv /path/to/1p /usr/local/bin/1p`
+- Create an alias (optional): `alias op=1p`
 
 ## Usage
 
 `1p` works exactly the same as the `op` command. However, it simplifies a few of the commands:
 
-- `op export`: Export all logins and save to a file.
-- `op get password <account>`: Get password for given account in plain text.
-- `op generate <length>`: Create a random password [default=32 bytes].
-- `op signin`: Sign in to current saved profile in `$HOME/.op/config`.
+- `1p export`: Export all logins and save to a file.
+- `1p get password <account>`: Get password for given account in plain text.
+- `1p generate <length>`: Create a random password [default=32 bytes].
+- `1p signin`: Sign in to current saved profile in `$HOME/.op/config`.
