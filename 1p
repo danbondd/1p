@@ -2,10 +2,6 @@
 
 set -o errexit
 
-# Check requirements
-command -v op &> /dev/null || error "required program 'op' is not installed"
-command -v jq &> /dev/null || error "required program 'jq' is not installed"
-
 function error {
 	echo "ERROR: $1"
 	exit 1
