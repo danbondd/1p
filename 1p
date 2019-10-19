@@ -2,10 +2,6 @@
 
 set -o errexit
 
-# Check requirements
-command -v op &> /dev/null || error "required program 'op' is not installed"
-command -v jq &> /dev/null || error "required program 'jq' is not installed"
-
 function error {
 	echo "ERROR: $1"
 	exit 1
@@ -63,7 +59,7 @@ function export_logins {
 	UUIDS=($(echo "${ITEMS}" | jq '.[] | .uuid' --raw-output))
 	ITEMS=()
 
-	echo -ne "Exporting logins (this may take a while)... "
+	echo -ne "Exporting data (this may take a while)..."
 	for UUID in ${UUIDS[@]}; do
 		LOGIN=$(op get item "${UUID}")
 		if [ $? -eq 0 ]; then
@@ -71,8 +67,13 @@ function export_logins {
 		fi
 	done
 	echo ${ITEMS[@]} | jq -sc . > "${FILE}"
-	echo -ne "ok\r\n"	
+	echo -ne "ok\r\n"
+	echo "Data exported to ${FILE}"
 }
+
+# check requirements
+command -v op &> /dev/null || error "required program 'op' is not installed"
+command -v jq &> /dev/null || error "required program 'jq' is not installed"
 
 case "$1" in
 	signin)
