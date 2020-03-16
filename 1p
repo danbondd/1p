@@ -1,16 +1,11 @@
 #!/usr/bin/env bash
 
-set -o errexit
-
-function error {
-	echo "ERROR: $1"
-	exit 1
-}
+set -eou pipefail
 
 function signin {
 	# Get current account from op config
 	if [ -f "$HOME/.op/config" ]; then
-		ACCOUNT=$(jq '.accounts | .[] | .shorthand' "$HOME/.op/config" --raw-output) || error "error getting op config"
+		ACCOUNT=$(jq '.accounts | .[] | .shorthand' "$HOME/.op/config" --raw-output)
 		echo $(op signin "${ACCOUNT}")
 	else
 		op "$@"
@@ -20,60 +15,33 @@ function signin {
 function get {
 	if [[ "$2" == "password" ]]; then
 		ITEM=$(op get item $3)
-		if [ $? -ne 0 ]; then
-			error "${ITEM}"
-		fi
 		echo "${ITEM}" | jq '.details.fields[] | select(.designation=="password").value' --raw-output
 	else
 		op "$@"
 	fi
 }
 
-function generate {
-	LENGTH=32
-	if ! [ -z "$1" ]; then
-		LENGTH=$1
-	fi
-	PASSWORD=$(cat /dev/urandom | tr -dc 'A-Za-z0-9!@#$%^&*()-_=+[]{};:,.<>/?' | head -c $LENGTH)
-	if [ $? -ne 0 ]; then
-		error "${PASSWORD}"
-	fi
-	echo "${PASSWORD}"
-}
-
 function export_logins {
-	if [ -z "$1" ]; then
-		FILE="$(date "+%Y%m%d-%H%M%S")-1password.json"
-	else
-		if [ -f "$1" ]; then
-			error "file already exists '$1'"
-		else
-			FILE=$1
-		fi
+	FILE="1password-$(date "+%Y%m%d-%H%M%S").json"
+	if [ -f "${FILE}" ]; then
+		echo "file already exists '$1'"
+		exit 1
 	fi
 
 	ITEMS=$(op list items)
-	if [ $? -ne 0 ]; then
-		error "${ITEMS}"
-	fi
 	UUIDS=($(echo "${ITEMS}" | jq '.[] | .uuid' --raw-output))
 	ITEMS=()
 
 	echo -ne "Exporting data (this may take a while)..."
 	for UUID in ${UUIDS[@]}; do
-		LOGIN=$(op get item "${UUID}")
-		if [ $? -eq 0 ]; then
-			ITEMS+=(${LOGIN})
-		fi
+		ITEMS+=($(op get item "${UUID}"))
+		# sleep as to not trigger rate limiter
+		sleep 0.5
 	done
 	echo ${ITEMS[@]} | jq -sc . > "${FILE}"
 	echo -ne "ok\r\n"
 	echo "Data exported to ${FILE}"
 }
-
-# check requirements
-command -v op &> /dev/null || error "required program 'op' is not installed"
-command -v jq &> /dev/null || error "required program 'jq' is not installed"
 
 case "$1" in
 	signin)
@@ -82,11 +50,8 @@ case "$1" in
 	get)
 		get "$@"
 		;;
-	generate)
-		generate $2
-		;;
 	export)
-		export_logins $2
+		export_logins
 		;;
 	*)
 		op "$@"

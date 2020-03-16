@@ -13,5 +13,4 @@
 
 - `1p export`: Export all logins and save to a file.
 - `1p get password <account>`: Get password for given account in plain text.
-- `1p generate <length>`: Create a random password [default=32 bytes].
 - `1p signin`: Sign in to current saved profile in `$HOME/.op/config`.
