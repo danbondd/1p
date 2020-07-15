@@ -1,3 +1,5 @@
+>**NOTE: As most of the features are now built into the official `op` tool, or on the product roadmap, `1p` will not be receiving further updates.**
+
 # 1p
 
 (Unofficial) Wrapper for the [1Password CLI](https://support.1password.com/command-line-getting-started/).
